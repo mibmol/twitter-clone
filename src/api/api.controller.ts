@@ -20,6 +20,7 @@ import { TweetCreate } from './entities/tweet.create';
 import { AuthenticatedGuard } from 'src/common/guards/authenticated.guard';
 import { Follows } from './entities/follows.entity';
 
+
 @Controller('api')
 @Injectable()
 @UsePipes(ValidationPipe)
@@ -33,7 +34,7 @@ export class ApiController {
 
         @InjectRepository(Follows)
         private readonly followsRepo: Repository<Follows>,
-    ) { }
+    ) {}
 
 
     @Get('feed')
@@ -41,13 +42,13 @@ export class ApiController {
     async getAll(@Request() req, @Response() res) {
         var result = await this.tweetRepo.createQueryBuilder("tweet")
             .leftJoinAndSelect(Follows, "follows", "follows.followed = tweet.user")
-            .where("follows.user.id = :id", {id: req.user.id})
+            .where("follows.user.id = :id", { id: req.user.id })
             .orderBy("tweet.timestamp", "DESC")
             .getMany()
-        
+
         console.log(this.tweetRepo.createQueryBuilder("tweet")
-        .leftJoinAndSelect(Follows, "follows", "follows.followed = tweet.user")
-        .where("follows.user.id = :id", {id: req.user.id}).getSql())
+            .leftJoinAndSelect(Follows, "follows", "follows.followed = tweet.user")
+            .where("follows.user.id = :id", { id: req.user.id }).getSql())
 
         return res.send(result);
     }
@@ -128,7 +129,7 @@ export class ApiController {
 
     @Put('tweet/:id/unfav')
     @UseGuards(AuthenticatedGuard)
-    async tweet_unfav(@Request() req, @Response() res, @Param('id') id: number){
+    async tweet_unfav(@Request() req, @Response() res, @Param('id') id: number) {
         var user: User = req.user as User;
         var tweet: Tweet = { id: id } as Tweet
 

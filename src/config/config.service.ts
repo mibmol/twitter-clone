@@ -13,7 +13,7 @@ export class ConfigService {
 
       NODE_ENV = NODE_ENV ? (NODE_ENV == 'none' ? 'development' : NODE_ENV) : 'development'
 
-      this.envConfig = dotenv.parse(fs.readFileSync( `${NODE_ENV}.env`))
+      this.envConfig = dotenv.parse(fs.readFileSync( `config-${NODE_ENV}.env`))
       this.envConfig.NODE_ENV = NODE_ENV
     }
   

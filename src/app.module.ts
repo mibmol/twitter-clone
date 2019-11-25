@@ -22,21 +22,40 @@ import { HelmetMiddleware } from './common/middlewares/helmet.middleware';
 import { CORSMiddleware } from './common/middlewares/cors.middleware';
 import { CsurfMiddleware } from './common/middlewares/csurf.middleware';
 
+/**
+ return {
+                    type: 'sqlite',
+                    database: config.get('DATABASE_NAME'),
+                    entities: [User, Reply, Tweet, Session, Follows],
+                    synchronize: config.get('NODE_ENV') == 'development',
+                } as TypeOrmModuleOptions
+ */
 
 @Module({
     imports: [
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
-            useFactory: async (config: ConfigService) =>
-                ({
-                    type: 'sqlite',
-                    database: config.get('DATABASE_NAME'),
-                    entities: [User, Reply, Tweet, Session, Follows],
-                    synchronize: config.get('NODE_ENV') == 'development',
-                } as TypeOrmModuleOptions),
+            useFactory: async (config: ConfigService) =>{
+                if (config.get('NODE_ENV') == 'development'){
+                    return {
+                        type: 'sqlite',
+                        database: config.get('DATABASE_NAME'),
+                        entities: [User, Reply, Tweet, Session, Follows],
+                        synchronize: true,
+                    } as TypeOrmModuleOptions
+                }
+                else 
+                    return {
+                        type: 'postgres',
+                        host: config.get('DATABASE_HOST'),
+                        database: config.get('DATABASE_NAME'),
+                        password: config.get('DATABASE_PASSWORD'),
+                        entities: [User, Reply, Tweet, Session, Follows],
+                        synchronize: false,
+                    } as TypeOrmModuleOptions
+            },
             inject: [ConfigService],
         }),
-
         ApiModule,
         AuthModule,
         ConfigModule,
@@ -76,7 +95,7 @@ export default class AppModule implements NestModule {
             HelmetMiddleware,
             CORSMiddleware,
             ExpressSessionMiddleware,       //
-            CsurfMiddleware,
+            //CsurfMiddleware,
             PassportInitializeMiddleware,   //  ¡order matters!
             PassportSessionMiddleware,      //
         ).forRoutes('*');

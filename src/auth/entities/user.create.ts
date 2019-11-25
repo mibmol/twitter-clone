@@ -16,5 +16,4 @@ export class UserCreate{
 
     @IsEmail()
     email: string
-
 }

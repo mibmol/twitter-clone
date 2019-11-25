@@ -39,3 +39,7 @@ lerna-debug.log*
 /playground
 *.db
 production.env
+
+# configs
+config-development.env
+config-production.env
