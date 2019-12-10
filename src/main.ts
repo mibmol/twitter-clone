@@ -1,21 +1,21 @@
 import { NestFactory } from '@nestjs/core';
-import {NestExpressApplication} from '@nestjs/platform-express'
+import { NestExpressApplication } from '@nestjs/platform-express'
 
 import AppModule from './app.module';
 
-import {join, resolve} from 'path'
-import {keys as getKeys} from 'ts-transformer-keys'
+import { join, resolve } from 'path'
+import { keys as getKeys } from 'ts-transformer-keys'
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+	const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.useStaticAssets(join(resolve(), 'public'));
-  app.setBaseViewsDir(join(resolve(), 'views'))
+	app.useStaticAssets(join(resolve(), 'public'));
+	app.setBaseViewsDir(join(resolve(), 'src/views'))
 
-  app.setViewEngine('pug');
+	app.setViewEngine('pug');
 
-  //app.useLogger()
+    //app.useLogger()
 
-  await app.listen(process.env.PORT || 3000);
+	await app.listen(process.env.PORT || 8000);
 }
 bootstrap();

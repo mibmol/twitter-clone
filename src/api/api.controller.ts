@@ -34,7 +34,7 @@ export class ApiController {
 
         @InjectRepository(Follows)
         private readonly followsRepo: Repository<Follows>,
-    ) {}
+    ) { }
 
 
     @Get('feed')
@@ -42,16 +42,15 @@ export class ApiController {
     async getAll(@Request() req, @Response() res) {
         var result = await this.tweetRepo.createQueryBuilder("tweet")
             .leftJoinAndSelect(Follows, "follows", "follows.followed = tweet.user")
-            .where("follows.user.id = :id", { id: req.user.id })
+            .where("follows.user.id = :logged_user_id", { logged_user_id: req.user.id })
+            .orWhere("tweet.user.id = :logged_user_id", { logged_user_id: req.user.id })
+            .innerJoinAndMapOne("tweet.user", User, "user", "user.id = tweet.user.id")
             .orderBy("tweet.timestamp", "DESC")
             .getMany()
 
-        console.log(this.tweetRepo.createQueryBuilder("tweet")
-            .leftJoinAndSelect(Follows, "follows", "follows.followed = tweet.user")
-            .where("follows.user.id = :id", { id: req.user.id }).getSql())
-
         return res.send(result);
     }
+
 
 
     @Post('feed/post')

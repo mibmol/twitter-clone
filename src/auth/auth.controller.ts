@@ -27,7 +27,8 @@ export class AuthController{
     login(@Request() req, @Response() res){
 
         var {password, email, phone_number, ...u} = req.user
-        return res.redirect('/')
+       // req.session.cookie.path = '/'
+        return res.status(201).send({ok: 'ok'})
     }
 
     
@@ -42,6 +43,7 @@ export class AuthController{
                 "msg": "user already exist"
             })
         }
+        
         var {password, email, ...data} = user
         return res.status(201).send(data)
     }

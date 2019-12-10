@@ -74,7 +74,8 @@ export default class AppModule implements NestModule {
         if (this.config.get('NODE_ENV') == 'development') {
 
             CORSMiddleware.configure({
-                origin: ["localhost:3000", "localhost:4200"]
+                origin: ["http://localhost:8000", "http://localhost:4200"],
+                credentials: true,
             })
             MorganMiddleware.configure('tiny', {
             });
@@ -85,7 +86,8 @@ export default class AppModule implements NestModule {
         }
         else {
             CORSMiddleware.configure({
-                origin: ["www.mysite.com", "api.mysite.com"]
+                origin: ["https://www.mysite.com", "https://api.mysite.com"],
+                credentials: true,
             })
         }
 
