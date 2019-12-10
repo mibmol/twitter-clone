@@ -41,7 +41,7 @@ export class AuthService {
     async validateUser(username: string, password: string): Promise<any> {
         var result: User[] = await this.userRepo.createQueryBuilder()
             .select('*')
-            .where("user.username = :username", {username: username})
+            .where("user.username = :username", { username: username })
             .execute()
 
         if (!result) {
@@ -51,7 +51,9 @@ export class AuthService {
         var user: User = result[0]
         var match = await compare(password, user.password)
 
-        return match ? user : null
+        var {password, email, phone_number, ...user_public_data} = user
+
+        return match ? user_public_data : null
     }
 
 

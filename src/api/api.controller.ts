@@ -61,17 +61,22 @@ export class ApiController {
         @Response() res,
     ) {
 
-        var saved = await this.tweetRepo.save({
-            text: tweet_input.text,
-            user: req.user,
-            timestamp: new Date().toString()
-        });
+        var saved = await this.tweetRepo.save(
+            {
+                text: tweet_input.text,
+                user: req.user,
+                timestamp: new Date().toString()
+            }
+        );
+
 
         if (!saved) {
             return res.status(422).send();
         }
 
-        return res.status(201).send();
+        console.log(req.user)
+
+        return res.status(201).send(saved);
     }
 
 

@@ -27,8 +27,8 @@ export class AuthController{
     login(@Request() req, @Response() res){
 
         var {password, email, phone_number, ...u} = req.user
-       // req.session.cookie.path = '/'
-        return res.status(201).send({ok: 'ok'})
+
+        return res.status(201).send(u)
     }
 
     
@@ -44,7 +44,7 @@ export class AuthController{
             })
         }
         
-        var {password, email, ...data} = user
+        var {password, email, phone_number, ...data} = user
         return res.status(201).send(data)
     }
     
