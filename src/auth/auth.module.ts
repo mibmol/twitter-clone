@@ -4,11 +4,11 @@ import { User } from './entities/user.entity';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { PassportModule} from '@nestjs/passport';
-import { LocalStrategy } from './local.strategy';
+import { LocalStrategy } from '../common/strategies/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from 'src/config/config.module';
 import { ConfigService } from 'src/config/config.service';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtStrategy } from '../common/strategies/jwt.strategy';
 import { SessionSerializer } from './session.serializer';
 import { Session } from './entities/session.entity';
 
@@ -19,7 +19,7 @@ import { Session } from './entities/session.entity';
             Session
         ]),
         PassportModule,
-        JwtModule.registerAsync({
+        /*JwtModule.registerAsync({
             imports: [ConfigModule],
             useFactory: async (config: ConfigService)=>(
                 {
@@ -30,7 +30,7 @@ import { Session } from './entities/session.entity';
                 }
             ),
             inject: [ConfigService],
-        }),
+        }),*/
         ConfigModule,
     ],
     providers: [

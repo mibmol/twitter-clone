@@ -12,7 +12,7 @@ export class Follows{
     @ManyToOne(() => User, user => user.followers)
     followed: User
 
-    @Column({type: "datetime"})
+    @Column({type: "timestamp with time zone"})
     date: string
 
     constructor(partial: Partial<User>) {

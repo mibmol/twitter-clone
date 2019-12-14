@@ -14,7 +14,7 @@ export class Tweet{
     @Column({length: 240})
     text: string
 
-    @Column({type: "datetime"})
+    @Column({type: "timestamp with time zone"})
     timestamp: string
 
     @ManyToMany(() => User)

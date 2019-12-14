@@ -16,8 +16,9 @@ export class AuthService {
     constructor(
         @InjectRepository(User)
         private readonly userRepo: Repository<User>,
-        private readonly jwtService: JwtService
+       // private readonly jwtService: JwtService
     ) { }
+
 
 
     async createUser(user_input: UserCreate): Promise<User> {
@@ -38,29 +39,31 @@ export class AuthService {
     }
 
 
+
     async validateUser(username: string, password: string): Promise<any> {
-        var result: User[] = await this.userRepo.createQueryBuilder()
+        var user: User = await this.userRepo.createQueryBuilder("user")
             .select('*')
             .where("user.username = :username", { username: username })
-            .execute()
+            .getRawOne()
 
-        if (!result) {
+        if (!user) {
             return null
         }
 
-        var user: User = result[0]
         var match = await compare(password, user.password)
 
-        var {password, email, phone_number, ...user_public_data} = user
+        var { password, email, phone_number, ...user_public_data } = user
 
         return match ? user_public_data : null
     }
 
 
-    async login(user: any) {
+
+   /* async login(user: any) {
         const payload = { username: user.username, sub: user.id };
         return {
             access_token: await this.jwtService.sign(payload),
         };
     }
+    */
 }

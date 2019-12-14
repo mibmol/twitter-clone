@@ -22,15 +22,6 @@ import { HelmetMiddleware } from './common/middlewares/helmet.middleware';
 import { CORSMiddleware } from './common/middlewares/cors.middleware';
 import { CsurfMiddleware } from './common/middlewares/csurf.middleware';
 
-/**
- return {
-                    type: 'sqlite',
-                    database: config.get('DATABASE_NAME'),
-                    entities: [User, Reply, Tweet, Session, Follows],
-                    synchronize: config.get('NODE_ENV') == 'development',
-                } as TypeOrmModuleOptions
- */
-
 @Module({
     imports: [
         TypeOrmModule.forRootAsync({
@@ -38,8 +29,12 @@ import { CsurfMiddleware } from './common/middlewares/csurf.middleware';
             useFactory: async (config: ConfigService) =>{
                 if (config.get('NODE_ENV') == 'development'){
                     return {
-                        type: 'sqlite',
+                        type: 'postgres',
                         database: config.get('DATABASE_NAME'),
+                        host: config.get('DATABASE_HOST'),
+                        port: parseInt(config.get('DATABASE_PORT')),
+                        username: config.get('DATABASE_USER_NAME'),
+                        password: config.get('DATABASE_USER_PASSWORD'),
                         entities: [User, Reply, Tweet, Session, Follows],
                         synchronize: true,
                     } as TypeOrmModuleOptions
@@ -47,17 +42,19 @@ import { CsurfMiddleware } from './common/middlewares/csurf.middleware';
                 else 
                     return {
                         type: 'postgres',
-                        host: config.get('DATABASE_HOST'),
                         database: config.get('DATABASE_NAME'),
-                        password: config.get('DATABASE_PASSWORD'),
+                        host: config.get('DATABASE_HOST'),
+                        port: parseInt(config.get('DATABASE_PORT')),
+                        username: config.get('DATABASE_USER_NAME'),
+                        password: config.get('DATABASE_USER_PASSWORD'),
                         entities: [User, Reply, Tweet, Session, Follows],
                         synchronize: false,
                     } as TypeOrmModuleOptions
             },
             inject: [ConfigService],
         }),
-        ApiModule,
         AuthModule,
+        ApiModule,
         ConfigModule,
     ],
     controllers: [AppController],

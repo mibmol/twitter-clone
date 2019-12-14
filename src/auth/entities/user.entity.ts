@@ -26,7 +26,7 @@ export class User {
 	@Column({ length: 300, select: false })
 	password: string;
 
-	@Column({ length: 100, select: false })
+	@Column({ length: 100, select: false , unique: true})
 	email: string;
 
 	@Column({ type: 'int', select: false, nullable: true })
@@ -38,10 +38,10 @@ export class User {
 	@Column({ default: true })
 	is_active: boolean;
 
-	@Column({ type: 'datetime' })
+	@Column({ type: "timestamp with time zone" })
 	last_login: string;
 
-	@Column({ type: 'datetime' })
+	@Column({ type: "timestamp with time zone" })
 	date_joined: string;
 
 	@OneToMany(() => Tweet, tweet => tweet.user)

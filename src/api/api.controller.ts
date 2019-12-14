@@ -12,7 +12,7 @@ import {
     Put,
     Param,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { Tweet } from './entities/tweet.entity';
 import { User } from 'src/auth/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -25,6 +25,8 @@ import { Follows } from './entities/follows.entity';
 @Injectable()
 @UsePipes(ValidationPipe)
 export class ApiController {
+    MAX_FEED: number = 40
+
     constructor(
         @InjectRepository(Tweet)
         private readonly tweetRepo: Repository<Tweet>,
@@ -39,18 +41,59 @@ export class ApiController {
 
     @Get('feed')
     @UseGuards(AuthenticatedGuard)
-    async getAll(@Request() req, @Response() res) {
-        var result = await this.tweetRepo.createQueryBuilder("tweet")
-            .leftJoinAndSelect(Follows, "follows", "follows.followed = tweet.user")
-            .where("follows.user.id = :logged_user_id", { logged_user_id: req.user.id })
-            .orWhere("tweet.user.id = :logged_user_id", { logged_user_id: req.user.id })
-            .innerJoinAndMapOne("tweet.user", User, "user", "user.id = tweet.user.id")
-            .orderBy("tweet.timestamp", "DESC")
-            .getMany()
+    async get_feed(@Request() req, @Response() res) {
+        var result = [];
+
+        const wf = new Brackets(wf => {
+            wf.where("follows.user.id = :logged_user_id", { logged_user_id: req.user.id })
+            wf.orWhere("tweet.user.id = :logged_user_id", { logged_user_id: req.user.id })
+        })
+
+        if (req.query.bottom_tweet_id) {
+            result = await this.tweetRepo.createQueryBuilder("tweet")
+                .leftJoinAndSelect(Follows, "follows", "follows.followed = tweet.user")
+                .where(wf)
+                .andWhere("tweet.id < :btid", { btid: req.query.bottom_tweet_id })
+                .innerJoinAndMapOne("tweet.user", User, "user", "user.id = tweet.user.id")
+                .orderBy("tweet.timestamp", "DESC")
+                .limit(this.MAX_FEED)
+                .getMany()
+        }
+        else {
+            result = await this.tweetRepo.createQueryBuilder("tweet")
+                .leftJoinAndSelect(Follows, "follows", "follows.followed = tweet.user")
+                .where(wf)
+                .innerJoinAndMapOne("tweet.user", User, "user", "user.id = tweet.user.id")
+                .orderBy("tweet.timestamp", "DESC")
+                .limit(this.MAX_FEED)
+                .getMany()
+        }
 
         return res.send(result);
     }
 
+
+    @Get('feed/new')
+    @UseGuards(AuthenticatedGuard)
+    async get_feed_new(@Request() req, @Response() res) {
+        var result = []
+
+        result = await this.tweetRepo.createQueryBuilder("tweet")
+            .leftJoinAndSelect(Follows, "follows", "follows.followed = tweet.user")
+            .where(new Brackets(wf => {
+                wf.where("follows.user.id = :logged_user_id", { logged_user_id: req.user.id })
+                wf.orWhere("tweet.user.id = :logged_user_id", { logged_user_id: req.user.id })
+            }))
+            .andWhere("tweet.id > :btid", { btid: req.query.top_tweet_id })
+            .innerJoinAndMapOne("tweet.user", User, "user", "user.id = tweet.user.id")
+            .orderBy("tweet.timestamp", "DESC")
+            .limit(this.MAX_FEED)
+            .getMany()
+
+
+
+        return res.send(result)
+    }
 
 
     @Post('feed/post')
@@ -61,20 +104,15 @@ export class ApiController {
         @Response() res,
     ) {
 
-        var saved = await this.tweetRepo.save(
-            {
-                text: tweet_input.text,
-                user: req.user,
-                timestamp: new Date().toString()
-            }
-        );
-
+        var saved = await this.tweetRepo.save({
+            text: tweet_input.text,
+            user: req.user,
+            timestamp: new Date().toString()
+        });
 
         if (!saved) {
             return res.status(422).send();
         }
-
-        console.log(req.user)
 
         return res.status(201).send(saved);
     }
@@ -178,35 +216,37 @@ export class ApiController {
     }
 
 
-    @Put('user/:id/follow')
+    @Put('user/:id_tofollow/follow')
     @UseGuards(AuthenticatedGuard)
-    async follow(@Request() req, @Response() res, @Param('id') id: number) {
+    async follow(
+        @Request() req,
+        @Response() res,
+        @Param('id_tofollow') id_tofollow: number
+    ) {
 
-        var exist: boolean = await this.userRepo.hasId({ id: id } as User);
+        var exist: boolean = await this.userRepo.hasId({ id: id_tofollow } as User);
 
         if (!exist) {
             return res.status(422).send;
         }
-
         await this.followsRepo.save({
             user: req.user,
-            followed: { id: id },
+            followed: { id: id_tofollow },
             date: new Date().toString()
         })
 
-        await this.userRepo.createQueryBuilder()
-            .update()
-            .set({
-                following_count: () => "'following_count' + 1"
+        try {
+            await this.userRepo.update({ id: req.user.id }, {
+                following_count: () => "\"following_count\" + 1"
             })
-            .where("user.id = :id", { id: req.user.id })
-            .execute()
-        await this.userRepo.createQueryBuilder()
-            .update()
-            .set({
-                followers_count: () => "'followers_count' + 1"
+            await this.userRepo.update({ id: id_tofollow }, {
+                followers_count: () => "\"followers_count\" + 1"
             })
-            .where("user.id = :id", { id: id })
+        } catch (error) {
+            console.log(error)
+        }
+
+
 
         return res.status(201).send();
     }
@@ -221,17 +261,17 @@ export class ApiController {
                 followed: { id: id }
             }
         )
-        await this.userRepo.createQueryBuilder()
+        await this.userRepo.createQueryBuilder("user")
             .update()
             .set({
-                following_count: () => "'following_count' - 1"
+                following_count: () => "\"following_count\" - 1"
             })
             .where("user.id = :id", { id: req.user.id })
             .execute()
-        await this.userRepo.createQueryBuilder()
+        await this.userRepo.createQueryBuilder("user")
             .update()
             .set({
-                followers_count: () => "'followers_count' -1"
+                followers_count: () => "\"followers_count\" -1"
             })
             .where("user.id = :id", { id: id })
 
