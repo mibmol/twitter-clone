@@ -93,8 +93,8 @@ export default class AppModule implements NestModule {
         consumer.apply(
             HelmetMiddleware,
             CORSMiddleware,
-            ExpressSessionMiddleware,       //
             //CsurfMiddleware,
+            ExpressSessionMiddleware,       //
             PassportInitializeMiddleware,   //  ¡order matters!
             PassportSessionMiddleware,      //
         ).forRoutes('*');

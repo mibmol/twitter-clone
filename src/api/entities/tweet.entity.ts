@@ -8,7 +8,7 @@ export class Tweet{
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne(() => User, user => user.tweets)
+    @ManyToOne(() => User, user => user.tweets, {cascade: true, eager: true})
     user: User
 
     @Column({length: 240})
@@ -17,27 +17,20 @@ export class Tweet{
     @Column({type: "timestamp with time zone"})
     timestamp: string
 
-    @ManyToMany(() => User)
-    @JoinTable()
-    liked_by: User[]  
-
-    @Column({type: "int", default:0})
-    likes_count: number
-
-    @ManyToMany(() => User)
+    @ManyToMany(() => User, {cascade: true, eager:true})
     @JoinTable()
     faved_by: User[]
 
     @Column({type: "int", default: 0})
     favs_count: number
 
-    @Column({type: 'int', default: 0})
-    replies_count: number
-
     @Column({default: false})
     is_reply: boolean
     
     @OneToMany(() => Reply, reply => reply.tweet)
     replies: Reply[]
+
+    @Column({type: 'int', default: 0})
+    replies_count: number
     
 }
