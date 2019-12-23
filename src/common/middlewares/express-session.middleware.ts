@@ -13,7 +13,6 @@ export class ExpressSessionMiddleware implements NestMiddleware{
     constructor(
         @InjectRepository(Session)
         private readonly sessionRepo: Repository<Session>,
-
         private  config: ConfigService
     ){}
 

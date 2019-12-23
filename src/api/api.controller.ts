@@ -19,6 +19,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TweetCreate } from './entities/tweet.create';
 import { AuthenticatedGuard } from 'src/common/guards/authenticated.guard';
 import { Follows } from './entities/follows.entity';
+import { Favs } from './entities/favs.entity';
+import { timer } from 'rxjs';
 
 
 @Controller('api')
@@ -36,6 +38,9 @@ export class ApiController {
 
         @InjectRepository(Follows)
         private readonly followsRepo: Repository<Follows>,
+
+        @InjectRepository(Favs)
+        private readonly favsRepo: Repository<Favs>
     ) { }
 
 
@@ -116,6 +121,10 @@ export class ApiController {
             return res.status(422).send();
         }
 
+        await this.userRepo.update(
+            { id: req.user.id }, { tweets_count: () => "\"tweets_count\" + 1" }
+        )
+
         return res.status(201).send(saved);
     }
 
@@ -146,17 +155,18 @@ export class ApiController {
             return res.status(422).send();
         }
 
-        await this.tweetRepo.createQueryBuilder()
-            .relation("faved_by")
-            .of(tweet)
-            .add(user)
+        await this.favsRepo.save({
+            user: user,
+            tweet: tweet,
+            timestamp: new Date().toDateString()
+        })
 
         await this.tweetRepo.update({ id: tweet.id }, {
             favs_count: () => "\"favs_count\" + 1"
         })
 
         await this.userRepo.update({ id: user.id }, {
-            liked_tweets_count: () => "\"liked_tweets_count\" + 1"
+            faved_tweets_count: () => "\"faved_tweets_count\" + 1"
         })
 
         return res.status(201).send();
@@ -174,17 +184,17 @@ export class ApiController {
             return res.status(422).send();
         }
 
-        await this.tweetRepo.createQueryBuilder()
-            .relation("faved_by")
-            .of(tweet)
-            .remove(user)
+        await this.favsRepo.delete({
+            user: user,
+            tweet: tweet
+        })
 
         await this.tweetRepo.update({ id: tweet.id }, {
             favs_count: () => "\"favs_count\" - 1"
         })
 
         await this.userRepo.update({ id: user.id }, {
-            liked_tweets_count: () => "\"liked_tweets_count\" - 1"
+            faved_tweets_count: () => "\"faved_tweets_count\" - 1"
         })
 
         return res.status(201).send();
@@ -196,12 +206,10 @@ export class ApiController {
     async user_faved(@Request() req, @Response() res, @Param('tweet_id') tweet_id: number) {
 
 
-        var result = await this.tweetRepo.query(
-            `SELECT "twu"."userId", "twu"."tweetId" 
-                FROM "tweet_faved_by_user" "twu"
-                WHERE "twu"."userId" = ${req.user.id}
-                AND "twu"."tweetId" = ${tweet_id}`
-        )
+        var result = await this.favsRepo.find({
+            user: req.user as User,
+            tweet: { id: tweet_id } as Tweet
+        })
         var data = { faved: result[0] ? true : false }
 
         return res.send(data)
@@ -211,9 +219,7 @@ export class ApiController {
     @Get('user/:id')
     @UseGuards(AuthenticatedGuard)
     async users(@Request() req, @Response() res, @Param('id') id: number) {
-        var user = await this.userRepo.findOne(id, {
-            relations: ['following', 'following.followed'],
-        });
+        var user = await this.userRepo.findOne(id);
 
         return res.send(user);
     }
@@ -252,6 +258,52 @@ export class ApiController {
 
 
         return res.status(201).send();
+    }
+
+
+    @Get('user/:id/tweets')
+    @UseGuards(AuthenticatedGuard)
+    async user_tweets(@Request() req, @Response() res, @Param('id') id: number) {
+        let tweets = await this.tweetRepo.find({
+            where: {
+                user: { id: id } as User,
+                is_reply: false
+            }
+        })
+
+        return res.send(tweets)
+
+    }
+
+
+    @Get('user/:id/tweets_replies')
+    @UseGuards(AuthenticatedGuard)
+    async user_tweets_replies(@Request() req, @Response() res, @Param('id') id: number) {
+        let tweets = await this.tweetRepo.find({
+            where: {
+                user: { id: id } as User
+            }
+        })
+
+        return res.send(tweets)
+
+    }
+
+
+    @Get('user/:id/tweets_faved')
+    @UseGuards(AuthenticatedGuard)
+    async user_tweets_faved(@Request() req, @Response() res, @Param('id') id: number) {
+        let favs: Favs[] = await this.favsRepo.find({
+            relations: ["tweet"],
+            where: {
+                user: { id: id } as User
+            }
+        })
+
+        let tweets: Tweet[] = favs.map(item => item.tweet)
+
+        return res.send(tweets)
+
     }
 
 

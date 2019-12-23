@@ -3,6 +3,7 @@ import { User } from "src/auth/entities/user.entity";
 
 @Entity()
 export class Follows{
+    
     @PrimaryGeneratedColumn()
     id: number
 

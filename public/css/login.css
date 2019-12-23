@@ -1,9 +1,13 @@
 body{
     color: #14171a;
-    background-color: #e6ecf0;
+    background-color:rgb(18, 26, 36);
     font-size: 14px;
     line-height: 20px;
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+h1{
+    color: white;
 }
 
 fieldset{
@@ -12,14 +16,16 @@ fieldset{
 }
 
 input{
-    border: 1px solid #e6ecf0;
+    color: white;
+    background-color: rgb(18, 26, 36);
+    border: 1px solid #38444d;
     border-radius: 3px;
     padding: 5px;
     margin: 4px;
 }
 
 input::placeholder, textarea::placeholder {
-    color: #657786;
+    color: #8899a6;
     opacity: 1;
 }
 
@@ -32,6 +38,7 @@ input::placeholder, textarea::placeholder {
     background-color: white;
     max-width: 500px;
     margin: 50px auto;
+    background-color: #15202b;
     border: 1px solid rgba(0,0,0,0.1);
 }
 
@@ -44,4 +51,13 @@ input::placeholder, textarea::placeholder {
     background-color: #1da1f2;
     border: 1px solid #1da1f2;
     color: #fff;
+}
+
+p.signup-helper{
+    color: #8899a6;
+}
+
+a#login-signup-link{
+    margin-left: 5px;
+    color: rgb(29, 161, 242);
 }

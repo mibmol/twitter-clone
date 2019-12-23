@@ -6,7 +6,23 @@ export class AppController {
     constructor(private readonly appService: AppService) { }
 
     @Get()
-    index(@Request() req, @Response() res) {
-        return res.render('index')
+    home(@Request() req, @Response() res) {
+        if (!req.user){
+            return res.redirect('login')
+        }
+        else{
+            return res.render('home')
+        }
     }
+
+    @Get('login')
+    login(@Request() req, @Response() res) {
+        return res.render('login')
+    }
+
+    @Get('signup')
+    signup(@Request() req, @Response() res){
+        return res.render('signup')
+    }
+
 }

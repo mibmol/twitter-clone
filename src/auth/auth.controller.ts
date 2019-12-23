@@ -18,16 +18,17 @@ export class AuthController {
         @InjectRepository(User)
         private readonly userRepo: Repository<User>,
         private readonly authService: AuthService
-    ) { }
+    ) {}
 
 
+    @Post('login')
     @UsePipes(ValidationPipe)
     @UseGuards(LoginGuard)
-    @Post('login')
     async login(@Request() req, @Response() res){
         var { password, email, phone_number, ...u } = req.user
         return res.send(u)
     }
+
 
 
     @Post('register')
@@ -46,4 +47,34 @@ export class AuthController {
         return res.status(201).send(data)
     }
 
+    
+    @Post('mvc/login')
+    @UsePipes(ValidationPipe)
+    @UseGuards(LoginGuard)
+    async mvc_login(@Request() req, @Response() res){
+        if(req.user){
+            return res.send().redirect('/')
+        }
+        else{
+            return res.render('login', {
+                msg: "Wrong data"
+            })
+        }
+    }
+
+    
+    @Post('mvc/register')
+    @UsePipes(ValidationPipe)
+    async mvc_register(@Body() user_input: UserCreate, @Response() res) {
+
+        var user: User = await this.authService.createUser(user_input)
+
+        if (!user) {
+            return res.status(409).render('signup', {
+                msg: "user already exist"
+            })
+        }
+
+        return res.redirect('/')
+    }
 }

@@ -21,13 +21,14 @@ import { Follows } from './api/entities/follows.entity';
 import { HelmetMiddleware } from './common/middlewares/helmet.middleware';
 import { CORSMiddleware } from './common/middlewares/cors.middleware';
 import { CsurfMiddleware } from './common/middlewares/csurf.middleware';
+import { Favs } from './api/entities/favs.entity';
 
 @Module({
     imports: [
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
-            useFactory: async (config: ConfigService) =>{
-                if (config.get('NODE_ENV') == 'development'){
+            useFactory: async (config: ConfigService) => {
+                if (config.get('NODE_ENV') == 'development') {
                     return {
                         type: 'postgres',
                         database: config.get('DATABASE_NAME'),
@@ -35,11 +36,11 @@ import { CsurfMiddleware } from './common/middlewares/csurf.middleware';
                         port: parseInt(config.get('DATABASE_PORT')),
                         username: config.get('DATABASE_USER_NAME'),
                         password: config.get('DATABASE_USER_PASSWORD'),
-                        entities: [User, Reply, Tweet, Session, Follows],
+                        entities: [User, Reply, Tweet, Session, Follows, Favs],
                         synchronize: true,
                     } as TypeOrmModuleOptions
                 }
-                else 
+                else
                     return {
                         type: 'postgres',
                         database: config.get('DATABASE_NAME'),
@@ -47,7 +48,7 @@ import { CsurfMiddleware } from './common/middlewares/csurf.middleware';
                         port: parseInt(config.get('DATABASE_PORT')),
                         username: config.get('DATABASE_USER_NAME'),
                         password: config.get('DATABASE_USER_PASSWORD'),
-                        entities: [User, Reply, Tweet, Session, Follows],
+                        entities: [User, Reply, Tweet, Session, Follows, Favs],
                         synchronize: false,
                     } as TypeOrmModuleOptions
             },
@@ -68,35 +69,45 @@ export default class AppModule implements NestModule {
 
     configure(consumer: MiddlewareConsumer) {
 
-        if (this.config.get('NODE_ENV') == 'development') {
+        consumer.apply(
+            HelmetMiddleware,
+            ExpressSessionMiddleware,       //
+            PassportInitializeMiddleware,   //  ¡order matters!
+            PassportSessionMiddleware,      //
+        ).forRoutes('*');
 
+
+        CsurfMiddleware.configure({ cookie: true })
+        MorganMiddleware.configure('tiny', {});
+
+        if (this.config.get('NODE_ENV') == 'development') {
             CORSMiddleware.configure({
                 origin: ["http://localhost:8000", "http://localhost:4200"],
                 credentials: true,
             })
-            MorganMiddleware.configure('tiny', {
-            });
-
+           
             consumer.apply(
                 MorganMiddleware,
+                CORSMiddleware,
             ).forRoutes('*')
+            consumer.apply(CsurfMiddleware).forRoutes(
+                "/login",
+                "/signup"
+            )
+
         }
         else {
             CORSMiddleware.configure({
                 origin: ["https://www.mysite.com", "https://api.mysite.com"],
                 credentials: true,
             })
+            consumer.apply(
+                CORSMiddleware,
+                CsurfMiddleware
+            ).forRoutes("*")
         }
 
-       // CsurfMiddleware.configure()
+        
 
-        consumer.apply(
-            HelmetMiddleware,
-            CORSMiddleware,
-            //CsurfMiddleware,
-            ExpressSessionMiddleware,       //
-            PassportInitializeMiddleware,   //  ¡order matters!
-            PassportSessionMiddleware,      //
-        ).forRoutes('*');
     }
 }

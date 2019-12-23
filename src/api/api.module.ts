@@ -6,6 +6,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { Reply } from './entities/reply.entity';
 import { Follows } from './entities/follows.entity';
+import { Favs } from './entities/favs.entity';
 
 @Module({
     imports: [
@@ -13,7 +14,8 @@ import { Follows } from './entities/follows.entity';
             Tweet,
             Reply,
             User,
-            Follows
+            Follows,
+            Favs
         ]),
         AuthModule
     ],

@@ -8,6 +8,10 @@ yarn-lock.json
 yarn.lock
 *yarn.lock
 
+public/js/main-*.js
+public/js/polyfills-*.js
+public/js/runtime-*.js
+
 # Logs
 logs
 *.log

@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express'
+import * as cookieParser from 'cookie-parser'
 
 import AppModule from './app.module';
 
@@ -17,6 +18,7 @@ async function bootstrap() {
 	app.setViewEngine('pug')
 
     //app.useLogger()
+    app.use(cookieParser())
 
 	await app.listen(process.env.PORT || 8000)
 }

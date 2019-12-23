@@ -1,0 +1,65 @@
+body{
+    background-color: rgba(21, 32, 43, 0.9);
+    font-family: Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+
+.container{
+    width: 40%;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: rgb(21, 32, 43);
+    border-radius: 20px;
+}
+
+.header{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.header svg{
+    height: 1.7em;
+    width: 1.7em;
+    fill: white;
+    margin-top: 5px;
+    margin-bottom: 20px;
+}
+
+.title{
+    color: white;
+    font-weight: bold;
+    font-size: 23px;
+    width: 90%;
+    margin: 20px auto;
+}
+
+.form form{
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    margin: 20px auto;
+}
+
+.submitbi{
+    color: rgb(185, 185, 185);
+    margin-bottom: 20px;
+    border: none;
+    padding: 10px;
+    background-color: rgb(25, 39, 52);
+    border-bottom-color: gray;
+    border-bottom-width: 22px;
+}
+
+.submitb:required{
+    border-color: salmon !important;
+}
+
+.submitb{
+    background-color:rgb(29, 161, 242);
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 20px;
+}
