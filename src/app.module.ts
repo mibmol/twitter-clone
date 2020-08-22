@@ -24,90 +24,75 @@ import { CsurfMiddleware } from './common/middlewares/csurf.middleware';
 import { Favs } from './api/entities/favs.entity';
 
 @Module({
-    imports: [
-        TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            useFactory: async (config: ConfigService) => {
-                if (config.get('NODE_ENV') == 'development') {
-                    return {
-                        type: 'postgres',
-                        database: config.get('DATABASE_NAME'),
-                        host: config.get('DATABASE_HOST'),
-                        port: parseInt(config.get('DATABASE_PORT')),
-                        username: config.get('DATABASE_USER_NAME'),
-                        password: config.get('DATABASE_USER_PASSWORD'),
-                        entities: [User, Reply, Tweet, Session, Follows, Favs],
-                        synchronize: true,
-                    } as TypeOrmModuleOptions
-                }
-                else
-                    return {
-                        type: 'postgres',
-                        database: config.get('DATABASE_NAME'),
-                        host: config.get('DATABASE_HOST'),
-                        port: parseInt(config.get('DATABASE_PORT')),
-                        username: config.get('DATABASE_USER_NAME'),
-                        password: config.get('DATABASE_USER_PASSWORD'),
-                        entities: [User, Reply, Tweet, Session, Follows, Favs],
-                        synchronize: false,
-                    } as TypeOrmModuleOptions
-            },
-            inject: [ConfigService],
-        }),
-        AuthModule,
-        ApiModule,
-        ConfigModule,
-    ],
-    controllers: [AppController],
-    providers: [AppService],
+	imports: [
+		TypeOrmModule.forRootAsync({
+			imports: [ConfigModule],
+			useFactory: async (config: ConfigService) => {
+				if (config.get('NODE_ENV') == 'development') {
+					return {
+						type: 'postgres',
+						database: config.get('DATABASE_NAME'),
+						host: config.get('DATABASE_HOST'),
+						port: parseInt(config.get('DATABASE_PORT')),
+						username: config.get('DATABASE_USER_NAME'),
+						password: config.get('DATABASE_USER_PASSWORD'),
+						entities: [User, Reply, Tweet, Session, Follows, Favs],
+						synchronize: true,
+					} as TypeOrmModuleOptions;
+				} else
+					return {
+						type: 'postgres',
+						database: config.get('DATABASE_NAME'),
+						host: config.get('DATABASE_HOST'),
+						port: parseInt(config.get('DATABASE_PORT')),
+						username: config.get('DATABASE_USER_NAME'),
+						password: config.get('DATABASE_USER_PASSWORD'),
+						entities: [User, Reply, Tweet, Session, Follows, Favs],
+						synchronize: false,
+					} as TypeOrmModuleOptions;
+			},
+			inject: [ConfigService],
+		}),
+		AuthModule,
+		ApiModule,
+		ConfigModule,
+	],
+	controllers: [AppController],
+	providers: [AppService],
 })
 export default class AppModule implements NestModule {
-    constructor(
-        private readonly connection: Connection,
-        private readonly config: ConfigService,
-    ) { }
+	constructor(
+		private readonly connection: Connection,
+		private readonly config: ConfigService,
+	) {}
 
-    configure(consumer: MiddlewareConsumer) {
+	configure(consumer: MiddlewareConsumer) {
+		consumer
+			.apply(
+				HelmetMiddleware,
+				ExpressSessionMiddleware, //
+				PassportInitializeMiddleware, //  ¡order matters!
+				PassportSessionMiddleware, //
+			)
+			.forRoutes('*');
 
-        consumer.apply(
-            HelmetMiddleware,
-            ExpressSessionMiddleware,       //
-            PassportInitializeMiddleware,   //  ¡order matters!
-            PassportSessionMiddleware,      //
-        ).forRoutes('*');
+		CsurfMiddleware.configure({ cookie: true });
+		MorganMiddleware.configure('tiny', {});
 
+		if (this.config.get('NODE_ENV') == 'development') {
+			CORSMiddleware.configure({
+				origin: ['http://localhost:8000', 'http://localhost:4200'],
+				credentials: true,
+			});
 
-        CsurfMiddleware.configure({ cookie: true })
-        MorganMiddleware.configure('tiny', {});
-
-        if (this.config.get('NODE_ENV') == 'development') {
-            CORSMiddleware.configure({
-                origin: ["http://localhost:8000", "http://localhost:4200"],
-                credentials: true,
-            })
-           
-            consumer.apply(
-                MorganMiddleware,
-                CORSMiddleware,
-            ).forRoutes('*')
-            consumer.apply(CsurfMiddleware).forRoutes(
-                "/login",
-                "/signup"
-            )
-
-        }
-        else {
-            CORSMiddleware.configure({
-                origin: ["https://www.mysite.com", "https://api.mysite.com"],
-                credentials: true,
-            })
-            consumer.apply(
-                CORSMiddleware,
-                CsurfMiddleware
-            ).forRoutes("*")
-        }
-
-        
-
-    }
+			consumer.apply(MorganMiddleware, CORSMiddleware).forRoutes('*');
+			consumer.apply(CsurfMiddleware).forRoutes('/login', '/signup');
+		} else {
+			CORSMiddleware.configure({
+				origin: ['https://www.mysite.com', 'https://api.mysite.com'],
+				credentials: true,
+			});
+			consumer.apply(CORSMiddleware, CsurfMiddleware).forRoutes('*');
+		}
+	}
 }

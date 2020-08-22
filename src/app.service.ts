@@ -3,11 +3,11 @@ import { ConfigService } from './config/config.service';
 
 @Injectable()
 export class AppService {
-  //constructor(private config: ConfigService){}
+	//constructor(private config: ConfigService){}
 
-  count: number = -1;
-  getCount(): number {
-      this.count++;
-      return this.count;
-  }
+	count: number = -1;
+	getCount(): number {
+		this.count++;
+		return this.count;
+	}
 }

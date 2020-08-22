@@ -25,7 +25,7 @@ export class AuthController {
     @UsePipes(ValidationPipe)
     @UseGuards(LoginGuard)
     async login(@Request() req, @Response() res){
-        var { password, email, phone_number, ...u } = req.user
+        const { password, email, phone_number, ...u } = req.user
         return res.send(u)
     }
 
@@ -35,7 +35,7 @@ export class AuthController {
     @UsePipes(ValidationPipe)
     async register(@Body() user_input: UserCreate, @Response() res) {
 
-        var user: User = await this.authService.createUser(user_input)
+        const user: User = await this.authService.createUser(user_input)
 
         if (!user) {
             return res.status(409).send({
@@ -67,7 +67,7 @@ export class AuthController {
     @UsePipes(ValidationPipe)
     async mvc_register(@Body() user_input: UserCreate, @Response() res) {
 
-        var user: User = await this.authService.createUser(user_input)
+        const user: User = await this.authService.createUser(user_input)
 
         if (!user) {
             return res.status(409).render('signup', {

@@ -9,8 +9,7 @@ export class ConfigService {
 
     constructor() {
 
-      var NODE_ENV = process.env.NODE_ENV
-
+      let NODE_ENV = process.env.NODE_ENV
       NODE_ENV = NODE_ENV ? (NODE_ENV == 'none' ? 'development' : NODE_ENV) : 'development'
 
       this.envConfig = dotenv.parse(fs.readFileSync( `config-${NODE_ENV}.env`))
